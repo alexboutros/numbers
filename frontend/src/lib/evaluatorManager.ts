@@ -1,11 +1,11 @@
-﻿import { sumResults, sumSpecifiedResults } from "@/lib/sumEvaluator.ts";
-import * as math from "mathjs";
+﻿import * as math from "mathjs";
+import {sumResults, sumSpecifiedResults} from "@/lib/sumEvaluator.ts";
 
 export const evaluateAllLines = (
-    rows: { expression: string; result: number | string | null }[],
+    rows: { expression: string; result: number | string | null; color?: string }[], // Include color
     variables: { [key: string]: number },
     setVariables: React.Dispatch<React.SetStateAction<{ [key: string]: number }>>
-): { expression: string; result: number | string | null; isInvalid: boolean }[] => {
+): { expression: string; result: number | string | null; isInvalid: boolean; color?: string }[] => {
     const currentResults: (number | string | null)[] = [];
     let tempVariables = { ...variables };
     const validVariables: { [key: string]: boolean } = {}; // Track valid variables
@@ -77,7 +77,9 @@ export const evaluateAllLines = (
 
         // Push the result to currentResults for further evaluations
         currentResults.push(result);
-        return { expression: row.expression, result, isInvalid };
+
+        // Return the updated row with the existing color preserved
+        return { expression: row.expression, result, isInvalid, color: row.color };
     });
 
     // After processing all rows, remove invalid variables
@@ -90,7 +92,7 @@ export const evaluateAllLines = (
     // Force re-evaluation of rows by updating variables immediately after clearing invalid ones
     setVariables(tempVariables);
 
-    // reprocess the entire row set to update lines that might depend on the invalidated variables
+    // Reprocess the entire row set to update lines that might depend on invalidated variables
     return updatedRows.map((row) => {
         const expression = row.expression.trim();
 
@@ -104,7 +106,7 @@ export const evaluateAllLines = (
         );
 
         if (isDependentOnInvalidVariable) {
-            return { ...row, result: "Invalid expression", isInvalid: true };
+            return { ...row, result: "Invalid expression", isInvalid: true, color: row.color }; // Preserve color here too
         }
 
         return row;
