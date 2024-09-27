@@ -3,14 +3,13 @@ import { parseLineNumbers } from "../parsers/ExpressionParser";
 
 export const sumResults = (
     results: (number | string | null)[],
-    currentIndex: number,
-    rows: { expression: string }[]
+    currentIndex: number
 ): number => {
     return results
-        .slice(0, currentIndex)
+        .slice(0, currentIndex) // Look at previous results only
         .filter((result): result is number => {
-            // Ensure result is strictly a number and exclude 'sum' command lines
-            return typeof result === "number"; // Filter out non-number results
+            // Ensure result is strictly a number
+            return typeof result === "number";
         })
         .reduce((acc: number, result: number) => acc + result, 0);
 };
@@ -49,7 +48,7 @@ export const handleSumExpressions = (
             const sum = sumSpecifiedResults(
                 updatedRows
                     .map((r) => r.result)
-                    .filter((r) => typeof r === "string" || typeof r === "number" || r === null), // Ensure no objects
+                    .filter((r): r is string | number | null => typeof r === "number" || typeof r === "string" || r === null), // Ensure no objects
                 lineNumbers
             );
             return sum.toString();
@@ -58,4 +57,3 @@ export const handleSumExpressions = (
         }
     });
 };
-

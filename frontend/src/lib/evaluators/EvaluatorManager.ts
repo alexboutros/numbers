@@ -106,9 +106,8 @@ const evaluateExpression = (
             const sum = sumResults(
                 updatedRows
                     .map((r) => r.result)
-                    .filter((r) => typeof r === "string" || typeof r === "number" || r === null), // Ensure no objects
-                currentIndex,
-                updatedRows
+                    .filter((r): r is string | number | null => typeof r === "string" || typeof r === "number" || r === null), // Filter out objects
+                currentIndex
             );
             return sum;
         } catch (e: any) {
@@ -134,8 +133,7 @@ const evaluateExpression = (
             }
         }
 
-        // Return the formatted result for rendering
-        return typeof rawResult === 'object' ? JSON.stringify(rawResult) : rawResult;  // Fix for object handling
+        return rawResult;
     } catch (e: any) {
         throw new Error("Invalid expression");
     }
