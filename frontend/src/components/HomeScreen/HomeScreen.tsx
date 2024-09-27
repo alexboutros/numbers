@@ -1,12 +1,13 @@
-﻿import Calculator from "@/components/Calculator/Calculator";
+﻿import { useState } from "react";
+import Calculator from "@/components/Calculator/Calculator";
 import ResultColumn from "@/components/ResultColumn/ResultColumn";
-import { useState } from "react";
 import WindowControls from "@/components/WindowControls/WindowControls";
 
 interface Row {
     expression: string;
     result: number | string | null;
     isInvalid: boolean;
+    color?: string;
 }
 
 const HomeScreen = () => {
