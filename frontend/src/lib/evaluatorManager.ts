@@ -2,13 +2,13 @@
 import {sumResults, sumSpecifiedResults} from "@/lib/sumEvaluator.ts";
 
 export const evaluateAllLines = (
-    rows: { expression: string; result: number | string | null; color?: string }[], // Include color
+    rows: { expression: string; result: number | string | null; color?: string }[],
     variables: { [key: string]: number },
     setVariables: React.Dispatch<React.SetStateAction<{ [key: string]: number }>>
 ): { expression: string; result: number | string | null; isInvalid: boolean; color?: string }[] => {
     const currentResults: (number | string | null)[] = [];
     let tempVariables = { ...variables };
-    const validVariables: { [key: string]: boolean } = {}; // Track valid variables
+    const validVariables: { [key: string]: boolean } = {};
 
     const updatedRows = rows.map((row, idx) => {
         const expression = row.expression.trim();

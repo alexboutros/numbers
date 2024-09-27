@@ -6,7 +6,7 @@ interface Row {
     expression: string;
     result: number | string | null;
     isInvalid: boolean;
-    color?: string; // Added color
+    color?: string;
 }
 
 interface CalculatorProps {
@@ -25,9 +25,9 @@ const Calculator = ({ rows, setRows }: CalculatorProps) => {
                 expression: line,
                 result: null,
                 isInvalid: false,
-                color: colors[index % colors.length], // Set the color initially
+                color: colors[index % colors.length],
             }));
-            setRows(exampleLines); // Set the example rows
+            setRows(exampleLines);
         }
     }, [setRows]);
 
@@ -37,8 +37,8 @@ const Calculator = ({ rows, setRows }: CalculatorProps) => {
 
         const updatedRows = lines.map((line, index) => ({
             expression: line,
-            result: rows[index]?.result ?? null, // Preserve the result
-            isInvalid: rows[index]?.isInvalid ?? false, // Preserve the validity status
+            result: rows[index]?.result ?? null,
+            isInvalid: rows[index]?.isInvalid ?? false,
             color: rows[index]?.color || colors[index % colors.length], // Preserve existing color or assign new one
         }));
 
@@ -54,9 +54,9 @@ const Calculator = ({ rows, setRows }: CalculatorProps) => {
             // Preserve row colors when evaluating
             const updatedRows = evaluateAllLines(
                 rows.map((row) => ({
-                    ...row, // Spread all existing properties
-                    expression: row.expression,  // Preserve expression
-                    color: row.color              // Ensure color is preserved
+                    ...row,
+                    expression: row.expression,
+                    color: row.color
                 })),
                 variables,
                 setVariables
@@ -112,7 +112,7 @@ const Calculator = ({ rows, setRows }: CalculatorProps) => {
             expression: line,
             result: null,
             isInvalid: false,
-            color: index === cursorLineIndex || index === cursorLineIndex + 1 ? originalColor : rows[index]?.color || colors[index % colors.length], // Keep the same color for the new line
+            color: index === cursorLineIndex || index === cursorLineIndex + 1 ? originalColor : rows[index]?.color || colors[index % colors.length],
         }));
 
         setRows(updatedRows);
@@ -131,7 +131,7 @@ const Calculator = ({ rows, setRows }: CalculatorProps) => {
         if (sumMatch && sumMatch[1]) {
             const lineNumbers = sumMatch[1]
                 .split(",")
-                .map((n) => parseInt(n.trim(), 10) - 1); // Convert to 0-based indices
+                .map((n) => parseInt(n.trim(), 10) - 1);
 
             return (
                 <>
@@ -201,7 +201,7 @@ const Calculator = ({ rows, setRows }: CalculatorProps) => {
                         style={{
                             padding: "0",
                             margin: 0,
-                            color: row.color || colors[idx % colors.length], // Ensure color is used
+                            color: row.color || colors[idx % colors.length],
                             textDecoration: row.isInvalid && !row.expression.startsWith("//") ? "underline red" : "none",
                         }}
                     >
