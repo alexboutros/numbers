@@ -1,4 +1,5 @@
-﻿
+﻿// Calculator.tsx
+
 import React, { useEffect, useRef } from "react";
 import { evaluateAllLines } from "@/lib/evaluatorManager";
 import { Button } from "@/components/ui/button";
@@ -16,13 +17,13 @@ interface CalculatorProps {
 }
 
 const colors = [
-    "#ff5e57",
-    "#5eafff",
-    "#5eff8d",
-    "#fffe5e",
-    "#ff5ea5",
-    "#8f5eff",
-    "#ffae5e",
+    "#ff5e57", // red
+    "#5eafff", // blue
+    "#5eff8d", // green
+    "#fffe5e", // yellow
+    "#ff5ea5", // pink
+    "#8f5eff", // purple
+    "#ffae5e", // orange
 ];
 
 const Calculator = ({ rows, setRows }: CalculatorProps) => {
@@ -231,9 +232,47 @@ const Calculator = ({ rows, setRows }: CalculatorProps) => {
         }
     };
 
-    // Reintroduce the renderExpressionWithColoredSum function
+    // Add parseLineNumbers function
+    const parseLineNumbersForColoring = (
+        input: string
+    ): Array<{ text: string; lineNumbers: number[] }> => {
+        const parts = input.split(",");
+        const result: Array<{ text: string; lineNumbers: number[] }> = [];
+
+        for (const part of parts) {
+            const range = part.trim();
+            let lineNumbers: number[] = [];
+            if (range.includes("-")) {
+                const [startStr, endStr] = range.split("-").map((s) => s.trim());
+                const start = parseInt(startStr, 10);
+                const end = parseInt(endStr, 10);
+
+                if (isNaN(start) || isNaN(end)) {
+                    lineNumbers = [];
+                } else if (start > end) {
+                    lineNumbers = [];
+                } else {
+                    for (let i = start; i <= end; i++) {
+                        lineNumbers.push(i - 1); // Convert to zero-based index
+                    }
+                }
+            } else {
+                const n = parseInt(range, 10);
+                if (isNaN(n)) {
+                    lineNumbers = [];
+                } else {
+                    lineNumbers.push(n - 1); // Convert to zero-based index
+                }
+            }
+            result.push({ text: range, lineNumbers });
+        }
+
+        return result;
+    };
+
+    // Updated renderExpressionWithColoredSum function
     const renderExpressionWithColoredSum = (expression: string) => {
-        const sumRegex = /sum\(([\d\s,]+)\)/g;
+        const sumRegex = /sum\(([\d\s,\-]+)\)/g;
         let match: RegExpExecArray | null;
         let lastIndex = 0;
         const parts: Array<string | JSX.Element> = [];
@@ -241,29 +280,61 @@ const Calculator = ({ rows, setRows }: CalculatorProps) => {
         while ((match = sumRegex.exec(expression)) !== null) {
             const before = expression.slice(lastIndex, match.index);
             const insideSum = match[1];
-            const lineNumbers = insideSum
-                .split(",")
-                .map((n: string) => parseInt(n.trim(), 10) - 1);
+
+            const parsedParts = parseLineNumbersForColoring(insideSum);
 
             parts.push(before);
             parts.push(
                 <span key={match.index}>
           sum(
-                    {lineNumbers.map((lineNumber, i) => (
-                        <span
-                            key={i}
-                            style={{
-                                color:
+                    {parsedParts.map((part, i) => {
+                        // Process part.text to color numbers and hyphens appropriately
+                        const numberOrHyphenRegex = /\d+|-+/g;
+                        let subMatch: RegExpExecArray | null;
+                        let subLastIndex = 0;
+                        const subParts: Array<string | JSX.Element> = [];
+
+                        while (
+                            (subMatch = numberOrHyphenRegex.exec(part.text)) !== null
+                            ) {
+                            const subBefore = part.text.slice(subLastIndex, subMatch.index);
+                            const token = subMatch[0];
+
+                            subParts.push(subBefore);
+
+                            if (/^\d+$/.test(token)) {
+                                // It's a number
+                                const lineNumber = parseInt(token, 10) - 1;
+                                const color =
                                     lineNumber >= 0 && lineNumber < rows.length
                                         ? rows[lineNumber].color ||
                                         colors[lineNumber % colors.length]
-                                        : "red",
-                            }}
-                        >
-              {lineNumber + 1}
-                            {i < lineNumbers.length - 1 ? "," : ""}
-            </span>
-                    ))}
+                                        : "red";
+                                subParts.push(
+                                    <span key={subLastIndex} style={{ color }}>
+                    {token}
+                  </span>
+                                );
+                            } else {
+                                // It's a hyphen or sequence of hyphens
+                                subParts.push(
+                                    <span key={subLastIndex} style={{ color: "gray" }}>
+                    {token}
+                  </span>
+                                );
+                            }
+                            subLastIndex = subMatch.index + token.length;
+                        }
+                        // Add any remaining text after the last match
+                        subParts.push(part.text.slice(subLastIndex));
+
+                        return (
+                            <span key={i}>
+                {subParts}
+                                {i < parsedParts.length - 1 ? "," : ""}
+              </span>
+                        );
+                    })}
                     )
         </span>
             );

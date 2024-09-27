@@ -1,4 +1,6 @@
-﻿import { sumSpecifiedResults, sumResults } from "./sumEvaluator";
+﻿// evaluatorManager.ts
+
+import { sumSpecifiedResults, sumResults } from "./sumEvaluator";
 
 interface Row {
     expression: string;
@@ -146,15 +148,13 @@ const evaluateExpression = (
     }
 
     // Replace sum(lineNumbers) with actual sums
-    const sumRegex = /sum\(([\d\s,]+)\)/g;
+    const sumRegex = /sum\(([\d\s,\-]+)\)/g;
 
     let expr = expression.replace(sumRegex, (_, p1) => {
         const insideSum = p1;
-        const lineNumbers = insideSum
-            .split(",")
-            .map((n: string) => parseInt(n.trim(), 10) - 1); // Convert to zero-based index
 
         try {
+            const lineNumbers = parseLineNumbers(insideSum);
             const sum = sumSpecifiedResults(
                 updatedRows.map((r) => r.result),
                 lineNumbers
@@ -189,6 +189,42 @@ const evaluateExpression = (
     } catch (e: any) {
         throw new Error("Invalid expression");
     }
+};
+
+const parseLineNumbers = (input: string): number[] => {
+    const lineNumbers: number[] = [];
+    const parts = input.split(",");
+
+    for (const part of parts) {
+        const range = part.trim();
+        if (range.includes("-")) {
+            const [startStr, endStr] = range.split("-").map((s) => s.trim());
+            const start = parseInt(startStr, 10);
+            const end = parseInt(endStr, 10);
+
+            if (isNaN(start) || isNaN(end)) {
+                throw new Error(`Invalid range in sum(): ${range}`);
+            }
+
+            if (start > end) {
+                throw new Error(
+                    `Invalid range in sum(): start (${start}) is greater than end (${end})`
+                );
+            }
+
+            for (let i = start; i <= end; i++) {
+                lineNumbers.push(i - 1); // Convert to zero-based index
+            }
+        } else {
+            const n = parseInt(range, 10);
+            if (isNaN(n)) {
+                throw new Error(`Invalid line number in sum(): ${range}`);
+            }
+            lineNumbers.push(n - 1); // Convert to zero-based index
+        }
+    }
+
+    return lineNumbers;
 };
 
 const isVariableAssignment = (expression: string): boolean => {
