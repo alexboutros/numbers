@@ -1,5 +1,5 @@
 ﻿import { useState } from "react";
-import { evaluateExpression } from "@/lib/evaluatorManager";
+import { evaluateAllLines } from "@/lib/evaluatorManager";
 
 interface Row {
     expression: string;
@@ -19,14 +19,23 @@ const Calculator = ({ rows, setRows }: CalculatorProps) => {
 
     const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         const lines = e.target.value.split("\n");
-        const updatedRows = lines.map((line, idx) => {
-            const evaluation = evaluateExpression(line, idx, rows, variables, setVariables);
-            return {
-                expression: line,
-                result: evaluation.result,
-                isInvalid: evaluation.isInvalid,
-            };
-        });
+
+        const updatedRows = lines.map((line) => ({
+            expression: line,
+            result: null,
+            isInvalid: false,
+        }));
+
+        setRows(updatedRows);
+    };
+
+    const handleKeyUp = () => {
+        const updatedRows = evaluateAllLines(
+            rows.map((row) => ({ ...row, expression: row.expression })),
+            variables,
+            setVariables
+        );
+
         setRows(updatedRows);
     };
 
@@ -84,6 +93,7 @@ const Calculator = ({ rows, setRows }: CalculatorProps) => {
                 }}
                 value={rows.map((row) => row.expression).join("\n")}
                 onChange={handleChange}
+                onKeyUp={handleKeyUp}
                 rows={rows.length}
                 placeholder="Enter your expressions, one per line..."
             />
