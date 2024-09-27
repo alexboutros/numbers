@@ -1,0 +1,51 @@
+﻿.container {
+    position: relative;
+    overflow-x: auto;
+}
+
+.contentWrapper {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+}
+
+.resultBackground {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 0;
+    pointer-events: none;
+    font-family: monospace;
+    font-size: 18px;
+    line-height: 1.5em;
+    white-space: pre-line;
+    margin: 0;
+    padding: 0.4em 0;
+    overflow: hidden;
+    width: auto;
+    min-width: 100%;
+    box-sizing: border-box;
+}
+
+.textarea {
+    font-family: monospace;
+    font-size: 18px;
+    line-height: 1.5em;
+    margin: 0;
+    padding: 0.4em 0;
+    height: 100%;
+    width: 100%;
+    min-width: 100%;
+    white-space: pre-line;
+    display: block;
+    overflow: hidden;
+    color: transparent;
+    caret-color: white;
+    z-index: 1;
+    position: relative;
+    box-sizing: border-box;
+    border: none;
+    resize: none;
+    background-color: transparent;
+    outline: none;
+}

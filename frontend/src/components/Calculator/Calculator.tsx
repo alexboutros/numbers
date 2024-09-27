@@ -1,30 +1,15 @@
-﻿// Calculator.tsx
-
-import React, { useEffect, useRef } from "react";
-import { evaluateAllLines } from "@/lib/evaluatorManager";
-import { Button } from "@/components/ui/button";
-
-interface Row {
-    expression: string;
-    result: number | string | null;
-    isInvalid: boolean;
-    color?: string;
-}
+﻿import React, { useEffect, useRef } from "react";
+import { evaluateAllLines } from "../../lib/evaluators/EvaluatorManager";
+import { Button } from "@/components/ui/button"
+import { Row } from "../../lib/types/Row";
+import { colors } from "../../lib/styles/colors";
+import { parseLineNumbersForColoring } from "../../lib/utils/ParsingUtils";
+import styles from "./Calculator.module.css";
 
 interface CalculatorProps {
     rows: Row[];
     setRows: (rows: Row[]) => void;
 }
-
-const colors = [
-    "#ff5e57", // red
-    "#5eafff", // blue
-    "#5eff8d", // green
-    "#fffe5e", // yellow
-    "#ff5ea5", // pink
-    "#8f5eff", // purple
-    "#ffae5e", // orange
-];
 
 const Calculator = ({ rows, setRows }: CalculatorProps) => {
     const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -232,44 +217,6 @@ const Calculator = ({ rows, setRows }: CalculatorProps) => {
         }
     };
 
-    // Add parseLineNumbers function
-    const parseLineNumbersForColoring = (
-        input: string
-    ): Array<{ text: string; lineNumbers: number[] }> => {
-        const parts = input.split(",");
-        const result: Array<{ text: string; lineNumbers: number[] }> = [];
-
-        for (const part of parts) {
-            const range = part.trim();
-            let lineNumbers: number[] = [];
-            if (range.includes("-")) {
-                const [startStr, endStr] = range.split("-").map((s) => s.trim());
-                const start = parseInt(startStr, 10);
-                const end = parseInt(endStr, 10);
-
-                if (isNaN(start) || isNaN(end)) {
-                    lineNumbers = [];
-                } else if (start > end) {
-                    lineNumbers = [];
-                } else {
-                    for (let i = start; i <= end; i++) {
-                        lineNumbers.push(i - 1); // Convert to zero-based index
-                    }
-                }
-            } else {
-                const n = parseInt(range, 10);
-                if (isNaN(n)) {
-                    lineNumbers = [];
-                } else {
-                    lineNumbers.push(n - 1); // Convert to zero-based index
-                }
-            }
-            result.push({ text: range, lineNumbers });
-        }
-
-        return result;
-    };
-
     // Updated renderExpressionWithColoredSum function
     const renderExpressionWithColoredSum = (expression: string) => {
         const sumRegex = /sum\(([\d\s,\-]+)\)/g;
@@ -380,89 +327,25 @@ const Calculator = ({ rows, setRows }: CalculatorProps) => {
     };
 
     return (
-        <div
-            ref={containerRef}
-            className="w-3/4 flex flex-col p-2"
-            style={{
-                position: "relative",
-                overflowX: "auto",
-            }}
-        >
-            <div
-                style={{
-                    display: "flex",
-                    alignItems: "flex-start",
-                    position: "relative",
-                    flex: 1,
-                    minWidth: 0,
-                }}
-            >
+        <div ref={containerRef} className={`${styles.container} w-3/4 flex flex-col p-2`}>
+            <div className={styles.contentWrapper}>
                 {/* Line numbers background */}
-                <div
-                    className="line-numbers-background"
-                    aria-hidden="true"
-                    style={{
-                        position: "relative",
-                        zIndex: 2,
-                        pointerEvents: "none",
-                        fontFamily: "monospace",
-                        fontSize: "18px",
-                        lineHeight: "1.5em",
-                        margin: 0,
-                        marginRight: 20,
-                        padding: "0.4em 0",
-                        textAlign: "right",
-                        width: "30px",
-                        color: "#888",
-                        paddingRight: "5px",
-                        paddingLeft: "0",
-                        whiteSpace: "nowrap",
-                        flexShrink: 0,
-                    }}
-                >
+                <div className={styles.lineNumbers} aria-hidden="true">
                     {rows.map((_, idx) => (
-                        <div key={idx} style={{ padding: 0, margin: 0 }}>
+                        <div key={idx} className={styles.lineNumber}>
                             {idx + 1}
                         </div>
                     ))}
                 </div>
 
                 {/* Main content container */}
-                <div
-                    style={{
-                        position: "relative",
-                        flex: 1,
-                        minWidth: 0,
-                    }}
-                >
+                <div className={styles.mainContent}>
                     {/* Expression background */}
-                    <div
-                        className="expression-background"
-                        aria-hidden="true"
-                        style={{
-                            position: "absolute",
-                            top: 0,
-                            left: 0,
-                            zIndex: 1,
-                            pointerEvents: "none", // Set to 'none' but override for the button row
-                            fontFamily: "monospace",
-                            fontSize: "18px",
-                            lineHeight: "1.5em",
-                            margin: 0,
-                            padding: "0.4em 0",
-                            whiteSpace: "pre",
-                            overflow: "visible",
-                            width: "auto",
-                            minWidth: "100%",
-                            boxSizing: "content-box",
-                        }}
-                    >
+                    <div className={styles.expressionBackground} aria-hidden="true">
                         {rows.map((row, idx) => (
                             <div
                                 key={idx}
                                 style={{
-                                    padding: 0,
-                                    margin: 0,
                                     color: row.color || colors[idx % colors.length],
                                     textDecoration:
                                         row.isInvalid && !row.expression.startsWith("//")
@@ -480,25 +363,7 @@ const Calculator = ({ rows, setRows }: CalculatorProps) => {
                     {/* Textarea for input */}
                     <textarea
                         ref={textareaRef}
-                        className="text-lg border-none resize-none bg-transparent focus:outline-none"
-                        style={{
-                            fontFamily: "monospace",
-                            fontSize: "18px",
-                            lineHeight: "1.5em",
-                            margin: 0,
-                            padding: "0.4em 0",
-                            height: "100%",
-                            display: "inline-block",
-                            color: "transparent",
-                            caretColor: "white",
-                            zIndex: 0, // Send textarea behind the expression background
-                            position: "relative",
-                            whiteSpace: "pre",
-                            overflow: "hidden",
-                            width: "auto",
-                            minWidth: "100%",
-                            boxSizing: "content-box",
-                        }}
+                        className={styles.textarea}
                         value={rows.map((row) => row.expression).join("\n")}
                         onChange={handleChange}
                         onKeyUp={handleKeyUp}

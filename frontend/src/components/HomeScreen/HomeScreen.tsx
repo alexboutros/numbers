@@ -1,14 +1,8 @@
-﻿import Calculator from "@/components/Calculator/Calculator";
-import ResultColumn from "@/components/ResultColumn/ResultColumn";
-import WindowControls from "@/components/WindowControls/WindowControls";
-import {useState} from "react";
-
-interface Row {
-    expression: string;
-    result: number | string | null;
-    isInvalid: boolean;
-    color?: string;
-}
+﻿import Calculator from "../Calculator/Calculator";
+import ResultColumn from "../ResultColumn/ResultColumn";
+import WindowControls from "../WindowControls/WindowControls";
+import { useState } from "react";
+import { Row } from "../../lib/types/Row";
 
 const HomeScreen = () => {
     const [rows, setRows] = useState<Row[]>([
