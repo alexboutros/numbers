@@ -107,7 +107,8 @@ const evaluateExpression = (
                 updatedRows
                     .map((r) => r.result)
                     .filter((r): r is string | number | null => typeof r === "string" || typeof r === "number" || r === null), // Filter out objects
-                currentIndex
+                currentIndex,
+                updatedRows // Pass updatedRows to track sum lines
             );
             return sum;
         } catch (e: any) {
