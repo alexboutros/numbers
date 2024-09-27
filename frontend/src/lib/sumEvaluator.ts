@@ -7,9 +7,11 @@
         .slice(0, currentIndex) // Look at previous results only
         .filter((result, idx): result is number => {
             // Ensure result is strictly a number and exclude 'sum' command lines
+            const expression = rows[idx]?.expression.trim().toLowerCase();
             return (
                 typeof result === "number" &&
-                !rows[idx]?.expression.trim().toLowerCase().startsWith("sum")
+                expression !== "sum" &&
+                !expression.startsWith("sum(")
             );
         })
         .reduce((acc: number, result: number) => acc + result, 0); // Accumulate valid numbers only

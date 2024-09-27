@@ -217,6 +217,9 @@ const Calculator = ({ rows, setRows }: CalculatorProps) => {
             return <span style={{ fontStyle: "italic" }}>[Expr Start]</span>;
         } else if (expression === "[Expr End]") {
             return <span style={{ fontStyle: "italic" }}>[Expr End]</span>;
+        } else if (expression.trim().toLowerCase() === "sum") {
+            // Render 'sum' keyword in bold
+            return <strong>sum</strong>;
         } else if (expression.trim() === "") {
             return "\u00A0"; // Render a non-breaking space for empty lines
         } else {

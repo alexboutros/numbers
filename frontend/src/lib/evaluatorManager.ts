@@ -1,4 +1,4 @@
-﻿import { sumSpecifiedResults } from "./sumEvaluator";
+﻿import { sumSpecifiedResults, sumResults } from "./sumEvaluator";
 
 interface Row {
     expression: string;
@@ -35,7 +35,7 @@ export const evaluateAllLines = (rows: Row[]): Row[] => {
             let result: number | string | null = null;
             let isInvalid = false;
             try {
-                result = evaluateExpression(multilineExpression.trim(), updatedRows);
+                result = evaluateExpression(multilineExpression.trim(), updatedRows, rows, i);
             } catch (e: any) {
                 isInvalid = true;
             }
@@ -58,7 +58,7 @@ export const evaluateAllLines = (rows: Row[]): Row[] => {
 
             if (!expression.startsWith("//") && expression !== "") {
                 try {
-                    result = evaluateExpression(expression, updatedRows);
+                    result = evaluateExpression(expression, updatedRows, rows, i);
                 } catch (e: any) {
                     isInvalid = true;
                 }
@@ -79,8 +79,24 @@ export const evaluateAllLines = (rows: Row[]): Row[] => {
 
 const evaluateExpression = (
     expression: string,
-    updatedRows: Row[]
+    updatedRows: Row[],
+    rows: Row[],
+    currentIndex: number
 ): number | string => {
+    // Handle 'sum' without arguments
+    if (expression.toLowerCase() === "sum") {
+        try {
+            const sum = sumResults(
+                updatedRows.map((r) => r.result),
+                currentIndex,
+                rows
+            );
+            return sum;
+        } catch (e: any) {
+            throw new Error(`Error evaluating sum: ${e.message}`);
+        }
+    }
+
     // Replace sum(lineNumbers) with actual sums
     const sumRegex = /sum\(([\d\s,]+)\)/g;
 
