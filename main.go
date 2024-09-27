@@ -22,13 +22,13 @@ func main() {
 	app := NewApp()
 
 	err := wails.Run(&options.App{
-		Title:             "Numbers",
-		Width:             702,
-		Height:            455,
-		MinWidth:          702,
-		MinHeight:         455,
-		MaxWidth:          1280,
-		MaxHeight:         800,
+		Title:     "Numbers",
+		Width:     735,
+		Height:    608,
+		MinWidth:  702,
+		MinHeight: 455,
+		//MaxWidth:          1280,
+		//MaxHeight:         800,
 		DisableResize:     false,
 		Fullscreen:        false,
 		Frameless:         true,

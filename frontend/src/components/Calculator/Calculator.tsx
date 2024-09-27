@@ -1,6 +1,7 @@
-﻿import React, { useEffect, useRef } from "react";
+﻿
+import React, { useEffect, useRef } from "react";
 import { evaluateAllLines } from "@/lib/evaluatorManager";
-import { checkFirstRun, exampleText } from "@/lib/exampleText";
+import { Button } from "@/components/ui/button";
 
 interface Row {
     expression: string;
@@ -29,21 +30,6 @@ const Calculator = ({ rows, setRows }: CalculatorProps) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const prevRowsLength = useRef<number>(rows.length);
 
-    useEffect(() => {
-        if (checkFirstRun()) {
-            const exampleLines = exampleText
-                .trim()
-                .split("\n")
-                .map((line, index) => ({
-                    expression: line,
-                    result: null,
-                    isInvalid: false,
-                    color: colors[index % colors.length],
-                }));
-            setRows(exampleLines);
-        }
-    }, [setRows]);
-
     // Adjust textarea width when content changes
     useEffect(() => {
         if (textareaRef.current) {
@@ -67,15 +53,90 @@ const Calculator = ({ rows, setRows }: CalculatorProps) => {
     const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         const lines = e.target.value.split("\n");
 
-        const updatedRows = lines.map((line, index) => ({
-            expression: line,
-            result: rows[index]?.result ?? null,
-            isInvalid: rows[index]?.isInvalid ?? false,
-            color:
-                rows[index]?.color || colors[index % colors.length], // Preserve existing color or assign new one
-        }));
+        let updatedRows: Row[] = [];
+        let currentColorIndex = 0;
+        let currentColor = colors[currentColorIndex % colors.length];
 
-        setRows(updatedRows);
+        let i = 0;
+        while (i < lines.length) {
+            const line = lines[i];
+
+            if (line.trim() === "[[Clear Editor]]") {
+                // Special case for the Clear Editor button
+                updatedRows.push({
+                    expression: line,
+                    result: null,
+                    isInvalid: false,
+                    color: currentColor,
+                });
+                currentColorIndex++;
+                currentColor = colors[currentColorIndex % colors.length];
+                i++;
+            } else if (line.trim() === "[Expr Start]") {
+                // Assign the current color to [Expr Start] and all lines until [Expr End]
+                updatedRows.push({
+                    expression: line,
+                    result: null,
+                    isInvalid: false,
+                    color: currentColor,
+                });
+                i++;
+
+                while (i < lines.length) {
+                    const exprLine = lines[i];
+                    updatedRows.push({
+                        expression: exprLine,
+                        result: null,
+                        isInvalid: false,
+                        color: currentColor,
+                    });
+                    if (exprLine.trim() === "[Expr End]") {
+                        break;
+                    }
+                    i++;
+                }
+
+                currentColorIndex++;
+                currentColor = colors[currentColorIndex % colors.length];
+                i++;
+            } else if (line.trim().startsWith("//")) {
+                // Assign the same color to consecutive comment lines
+                updatedRows.push({
+                    expression: line,
+                    result: null,
+                    isInvalid: false,
+                    color: currentColor,
+                });
+                i++;
+                while (i < lines.length && lines[i].trim().startsWith("//")) {
+                    updatedRows.push({
+                        expression: lines[i],
+                        result: null,
+                        isInvalid: false,
+                        color: currentColor,
+                    });
+                    i++;
+                }
+                currentColorIndex++;
+                currentColor = colors[currentColorIndex % colors.length];
+            } else {
+                // Regular line
+                updatedRows.push({
+                    expression: line,
+                    result: null,
+                    isInvalid: false,
+                    color: currentColor,
+                });
+                currentColorIndex++;
+                currentColor = colors[currentColorIndex % colors.length];
+                i++;
+            }
+        }
+
+        // Evaluate the updated rows
+        const evaluatedRows = evaluateAllLines(updatedRows);
+
+        setRows(evaluatedRows);
     };
 
     // Handle keyup events (preserve colors)
@@ -89,15 +150,9 @@ const Calculator = ({ rows, setRows }: CalculatorProps) => {
                 containerRef.current.scrollLeft = 0;
             }
         } else {
-            // Preserve row colors when evaluating
-            const updatedRows = evaluateAllLines(
-                rows.map((row) => ({
-                    ...row,
-                    expression: row.expression,
-                    color: row.color,
-                }))
-            );
-            setRows(updatedRows);
+            // Re-evaluate expressions
+            const evaluatedRows = evaluateAllLines(rows);
+            setRows(evaluatedRows);
         }
     };
 
@@ -110,7 +165,7 @@ const Calculator = ({ rows, setRows }: CalculatorProps) => {
 
         // Find which line the cursor is on
         for (let i = 0; i < lines.length; i++) {
-            charCount += lines[i].length + 1; // +1 for newline
+            charCount += lines[i].length + 1;
             if (charCount > cursorPosition) {
                 cursorLineIndex = i;
                 break;
@@ -149,7 +204,10 @@ const Calculator = ({ rows, setRows }: CalculatorProps) => {
                     : rows[index]?.color || colors[index % colors.length],
         }));
 
-        setRows(updatedRows);
+        // Evaluate the updated rows
+        const evaluatedRows = evaluateAllLines(updatedRows);
+
+        setRows(evaluatedRows);
 
         // Move the cursor to the start of the new empty line
         setTimeout(() => {
@@ -163,6 +221,14 @@ const Calculator = ({ rows, setRows }: CalculatorProps) => {
                 );
             }
         }, 0);
+    };
+
+    // Handle clearing the editor
+    const handleClearEditor = () => {
+        setRows([]);
+        if (textareaRef.current) {
+            textareaRef.current.value = "";
+        }
     };
 
     // Reintroduce the renderExpressionWithColoredSum function
@@ -191,7 +257,7 @@ const Calculator = ({ rows, setRows }: CalculatorProps) => {
                                     lineNumber >= 0 && lineNumber < rows.length
                                         ? rows[lineNumber].color ||
                                         colors[lineNumber % colors.length]
-                                        : "red", // Highlight invalid line numbers in red
+                                        : "red",
                             }}
                         >
               {lineNumber + 1}
@@ -212,16 +278,31 @@ const Calculator = ({ rows, setRows }: CalculatorProps) => {
     };
 
     // Update renderExpression function to use renderExpressionWithColoredSum
-    const renderExpression = (expression: string) => {
-        if (expression === "[Expr Start]") {
+    const renderExpression = (expression: string, index: number) => {
+        if (expression === "[[Clear Editor]]") {
+            return (
+                <div
+                    key={index}
+                    style={{
+                        display: "flex",
+                        alignItems: "center",
+                        height: "1.5em",
+                        pointerEvents: "auto",
+                    }}
+                >
+                    <Button variant="default" size="xs" onClick={handleClearEditor}>
+                        Clear Editor
+                    </Button>
+                </div>
+            );
+        } else if (expression === "[Expr Start]") {
             return <span style={{ fontStyle: "italic" }}>[Expr Start]</span>;
         } else if (expression === "[Expr End]") {
             return <span style={{ fontStyle: "italic" }}>[Expr End]</span>;
         } else if (expression.trim().toLowerCase() === "sum") {
-            // Render 'sum' keyword in bold
             return <strong>sum</strong>;
         } else if (expression.trim() === "") {
-            return "\u00A0"; // Render a non-breaking space for empty lines
+            return "\u00A0";
         } else {
             return renderExpressionWithColoredSum(expression);
         }
@@ -251,7 +332,7 @@ const Calculator = ({ rows, setRows }: CalculatorProps) => {
                     aria-hidden="true"
                     style={{
                         position: "relative",
-                        zIndex: 0,
+                        zIndex: 2,
                         pointerEvents: "none",
                         fontFamily: "monospace",
                         fontSize: "18px",
@@ -291,8 +372,8 @@ const Calculator = ({ rows, setRows }: CalculatorProps) => {
                             position: "absolute",
                             top: 0,
                             left: 0,
-                            zIndex: 0,
-                            pointerEvents: "none",
+                            zIndex: 1,
+                            pointerEvents: "none", // Set to 'none' but override for the button row
                             fontFamily: "monospace",
                             fontSize: "18px",
                             lineHeight: "1.5em",
@@ -316,9 +397,11 @@ const Calculator = ({ rows, setRows }: CalculatorProps) => {
                                         row.isInvalid && !row.expression.startsWith("//")
                                             ? "underline red"
                                             : "none",
+                                    pointerEvents:
+                                        row.expression === "[[Clear Editor]]" ? "auto" : "none",
                                 }}
                             >
-                                {renderExpression(row.expression)}
+                                {renderExpression(row.expression, idx)}
                             </div>
                         ))}
                     </div>
@@ -337,7 +420,7 @@ const Calculator = ({ rows, setRows }: CalculatorProps) => {
                             display: "inline-block",
                             color: "transparent",
                             caretColor: "white",
-                            zIndex: 1,
+                            zIndex: 0, // Send textarea behind the expression background
                             position: "relative",
                             whiteSpace: "pre",
                             overflow: "hidden",
