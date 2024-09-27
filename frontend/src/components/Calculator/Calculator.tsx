@@ -39,6 +39,29 @@ const Calculator = ({ rows, setRows }: CalculatorProps) => {
         setRows(updatedRows);
     };
 
+    const renderExpressionWithColoredSum = (expression: string, idx: number) => {
+        const sumMatch = expression.match(/sum\(([\d\s,]*)\)/);
+        if (sumMatch && sumMatch[1]) {
+            const lineNumbers = sumMatch[1]
+                .split(",")
+                .map((n) => parseInt(n.trim(), 10) - 1); // Convert to 0-based indices
+
+            return (
+                <>
+                    {expression.split('sum')[0]} sum(
+                    {lineNumbers.map((lineNumber, i) => (
+                        <span key={i} style={{ color: colors[lineNumber % colors.length] }}>
+                            {lineNumber + 1}
+                            {i < lineNumbers.length - 1 && ", "}
+                        </span>
+                    ))}
+                    )
+                </>
+            );
+        }
+        return expression;
+    };
+
     return (
         <div className="w-3/4 flex flex-1 flex-col p-2" style={{ position: "relative" }}>
             {/* Line numbers background */}
@@ -47,7 +70,7 @@ const Calculator = ({ rows, setRows }: CalculatorProps) => {
                 aria-hidden="true"
                 style={{
                     position: "absolute",
-                    left: 0, // Align to the far left
+                    left: 0,
                     zIndex: 0,
                     pointerEvents: "none",
                     fontFamily: "monospace",
@@ -56,10 +79,10 @@ const Calculator = ({ rows, setRows }: CalculatorProps) => {
                     whiteSpace: "pre-line",
                     margin: 0,
                     padding: "0.4em 0",
-                    textAlign: "right", // Align numbers to the right
-                    width: "40px", // Width for the line numbers
-                    color: "#888", // Color for the line numbers
-                    paddingRight: "10px", // Space between the numbers and the expressions
+                    textAlign: "right",
+                    width: "40px",
+                    color: "#888",
+                    paddingRight: "10px",
                 }}
             >
                 {rows.map((_, idx) => (
@@ -73,7 +96,7 @@ const Calculator = ({ rows, setRows }: CalculatorProps) => {
                 aria-hidden="true"
                 style={{
                     position: "absolute",
-                    left: 54, // Shift to the right to accommodate line numbers
+                    left: 54,
                     zIndex: 0,
                     pointerEvents: "none",
                     fontFamily: "monospace",
@@ -95,7 +118,7 @@ const Calculator = ({ rows, setRows }: CalculatorProps) => {
                             textDecoration: row.isInvalid && !row.expression.startsWith("//") ? "underline red" : "none",
                         }}
                     >
-                        {row.expression || "\u00A0"}
+                        {renderExpressionWithColoredSum(row.expression, idx) || "\u00A0"}
                     </div>
                 ))}
             </div>
@@ -108,7 +131,7 @@ const Calculator = ({ rows, setRows }: CalculatorProps) => {
                     fontSize: "18px",
                     lineHeight: "1.5em",
                     margin: 0,
-                    left: 46, // Shift textarea to match the expression background
+                    left: 46,
                     padding: "0.4em 0",
                     height: "100%",
                     whiteSpace: "pre-line",
