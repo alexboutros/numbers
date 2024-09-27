@@ -1,7 +1,7 @@
-﻿import { useState } from "react";
-import Calculator from "@/components/Calculator/Calculator";
+﻿import Calculator from "@/components/Calculator/Calculator";
 import ResultColumn from "@/components/ResultColumn/ResultColumn";
 import WindowControls from "@/components/WindowControls/WindowControls";
+import {useState} from "react";
 
 interface Row {
     expression: string;
@@ -11,7 +11,9 @@ interface Row {
 }
 
 const HomeScreen = () => {
-    const [rows, setRows] = useState<Row[]>([{ expression: "", result: null, isInvalid: false }]);
+    const [rows, setRows] = useState<Row[]>([
+        { expression: "", result: null, isInvalid: false },
+    ]);
 
     const updateRows = (newRows: Row[]) => {
         setRows(newRows);

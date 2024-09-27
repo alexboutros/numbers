@@ -1,4 +1,6 @@
-﻿export const sumResults = (
+﻿// sumEvaluator.ts
+
+export const sumResults = (
     results: (number | string | null)[],
     currentIndex: number,
     rows: { expression: string }[]
@@ -7,7 +9,10 @@
         .slice(0, currentIndex) // Look at previous results only
         .filter((result, idx): result is number => {
             // Ensure result is strictly a number and exclude 'sum' command lines
-            return typeof result === "number" && !rows[idx]?.expression.trim().toLowerCase().startsWith("sum");
+            return (
+                typeof result === "number" &&
+                !rows[idx]?.expression.trim().toLowerCase().startsWith("sum")
+            );
         })
         .reduce((acc: number, result: number) => acc + result, 0); // Accumulate valid numbers only
 };

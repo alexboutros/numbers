@@ -1,6 +1,4 @@
-﻿// Calculator.tsx
-
-import React, { useEffect, useState, useRef } from "react";
+﻿import React, { useEffect, useRef } from "react";
 import { evaluateAllLines } from "@/lib/evaluatorManager";
 import { checkFirstRun, exampleText } from "@/lib/exampleText";
 
@@ -27,7 +25,6 @@ const colors = [
 ];
 
 const Calculator = ({ rows, setRows }: CalculatorProps) => {
-    const [variables, setVariables] = useState<{ [key: string]: number }>({});
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const prevRowsLength = useRef<number>(rows.length);
@@ -98,15 +95,13 @@ const Calculator = ({ rows, setRows }: CalculatorProps) => {
                     ...row,
                     expression: row.expression,
                     color: row.color,
-                })),
-                variables,
-                setVariables
+                }))
             );
             setRows(updatedRows);
         }
     };
 
-    // Handles Ctrl + Enter behavior (preserve colors)
+    // Updated handleCtrlEnter function
     const handleCtrlEnter = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
         const cursorPosition = e.currentTarget.selectionStart;
         const lines = e.currentTarget.value.split("\n");
@@ -134,19 +129,13 @@ const Calculator = ({ rows, setRows }: CalculatorProps) => {
             // Create a new comment line with the same color as the original line
             newLines.splice(cursorLineIndex + 1, 0, "// ");
         } else {
-            // Handle math expressions, continue the expression and keep the closing bracket
-            if (!currentLine.startsWith("[")) {
-                // Add opening square bracket if it's the first line
-                newLines[cursorLineIndex] = `[${currentLine}`;
-            }
-
-            // Add a new line for the next part of the expression
-            newLines.splice(cursorLineIndex + 1, 0, "+ ");
-
-            // Ensure there's a closing square bracket after the entire expression
-            if (!newLines.some((line) => line.includes("]"))) {
-                newLines.push("] "); // Add closing bracket at the end
-            }
+            // Handle math expressions
+            // Insert '[Expr Start]' above the current line
+            newLines.splice(cursorLineIndex, 0, "[Expr Start]");
+            // Insert an empty line after the current line for continuing the expression
+            newLines.splice(cursorLineIndex + 2, 0, "");
+            // Insert '[Expr End]' after the empty line
+            newLines.splice(cursorLineIndex + 3, 0, "[Expr End]");
         }
 
         // Update the rows with the new lines, preserving the color
@@ -155,14 +144,14 @@ const Calculator = ({ rows, setRows }: CalculatorProps) => {
             result: null,
             isInvalid: false,
             color:
-                index === cursorLineIndex || index === cursorLineIndex + 1
+                index >= cursorLineIndex && index <= cursorLineIndex + 3
                     ? originalColor
                     : rows[index]?.color || colors[index % colors.length],
         }));
 
         setRows(updatedRows);
 
-        // Move the cursor to the new line
+        // Move the cursor to the start of the new empty line
         setTimeout(() => {
             const newCursorPosition = newLines
                 .slice(0, cursorLineIndex + 2)
@@ -176,27 +165,14 @@ const Calculator = ({ rows, setRows }: CalculatorProps) => {
         }, 0);
     };
 
-    const renderExpressionWithColoredSum = (expression: string) => {
-        const sumMatch = expression.match(/sum\(([\d\s,]*)\)/);
-        if (sumMatch && sumMatch[1]) {
-            const lineNumbers = sumMatch[1]
-                .split(",")
-                .map((n) => parseInt(n.trim(), 10) - 1);
-
-            return (
-                <>
-                    {expression.split("sum")[0]}sum(
-                    {lineNumbers.map((lineNumber, i) => (
-                        <span key={i} style={{ color: colors[lineNumber % colors.length] }}>
-              {lineNumber + 1}
-                            {i < lineNumbers.length - 1 ? "," : ""}
-            </span>
-                    ))}
-                    )
-                </>
-            );
+    const renderExpression = (expression: string) => {
+        if (expression === "[Expr Start]") {
+            return <span style={{ fontStyle: "italic" }}>[Expr Start]</span>;
+        } else if (expression === "[Expr End]") {
+            return <span style={{ fontStyle: "italic" }}>[Expr End]</span>;
+        } else {
+            return expression;
         }
-        return expression;
     };
 
     return (
@@ -290,7 +266,7 @@ const Calculator = ({ rows, setRows }: CalculatorProps) => {
                                             : "none",
                                 }}
                             >
-                                {renderExpressionWithColoredSum(row.expression) || "\u00A0"}
+                                {renderExpression(row.expression) || "\u00A0"}
                             </div>
                         ))}
                     </div>
