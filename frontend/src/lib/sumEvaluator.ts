@@ -1,6 +1,4 @@
-﻿// sumEvaluator.ts
-
-export const sumResults = (
+﻿export const sumResults = (
     results: (number | string | null)[],
     currentIndex: number,
     rows: { expression: string }[]
@@ -21,8 +19,17 @@ export const sumSpecifiedResults = (
     results: (number | string | null)[],
     specifiedIndexes: number[]
 ): number => {
-    return specifiedIndexes
-        .map((i) => results[i])
-        .filter((res): res is number => typeof res === "number") // Only sum valid numbers
-        .reduce((acc: number, val: number) => acc + val, 0); // Accumulate only valid numbers
+    let sum = 0;
+    for (let i of specifiedIndexes) {
+        if (i < 0 || i >= results.length) {
+            throw new Error(`Line number ${i + 1} is out of bounds`);
+        }
+        const res = results[i];
+        if (typeof res === "number") {
+            sum += res;
+        } else {
+            throw new Error(`Result at line ${i + 1} is not a number`);
+        }
+    }
+    return sum;
 };

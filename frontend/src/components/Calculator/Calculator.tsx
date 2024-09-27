@@ -101,7 +101,7 @@ const Calculator = ({ rows, setRows }: CalculatorProps) => {
         }
     };
 
-    // Updated handleCtrlEnter function
+    // Define handleCtrlEnter function
     const handleCtrlEnter = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
         const cursorPosition = e.currentTarget.selectionStart;
         const lines = e.currentTarget.value.split("\n");
@@ -165,13 +165,62 @@ const Calculator = ({ rows, setRows }: CalculatorProps) => {
         }, 0);
     };
 
+    // Reintroduce the renderExpressionWithColoredSum function
+    const renderExpressionWithColoredSum = (expression: string) => {
+        const sumRegex = /sum\(([\d\s,]+)\)/g;
+        let match: RegExpExecArray | null;
+        let lastIndex = 0;
+        const parts: Array<string | JSX.Element> = [];
+
+        while ((match = sumRegex.exec(expression)) !== null) {
+            const before = expression.slice(lastIndex, match.index);
+            const insideSum = match[1];
+            const lineNumbers = insideSum
+                .split(",")
+                .map((n: string) => parseInt(n.trim(), 10) - 1);
+
+            parts.push(before);
+            parts.push(
+                <span key={match.index}>
+          sum(
+                    {lineNumbers.map((lineNumber, i) => (
+                        <span
+                            key={i}
+                            style={{
+                                color:
+                                    lineNumber >= 0 && lineNumber < rows.length
+                                        ? rows[lineNumber].color ||
+                                        colors[lineNumber % colors.length]
+                                        : "red", // Highlight invalid line numbers in red
+                            }}
+                        >
+              {lineNumber + 1}
+                            {i < lineNumbers.length - 1 ? "," : ""}
+            </span>
+                    ))}
+                    )
+        </span>
+            );
+
+            lastIndex = match.index + match[0].length;
+        }
+
+        // Add any remaining text after the last match
+        parts.push(expression.slice(lastIndex));
+
+        return <>{parts}</>;
+    };
+
+    // Update renderExpression function to use renderExpressionWithColoredSum
     const renderExpression = (expression: string) => {
         if (expression === "[Expr Start]") {
             return <span style={{ fontStyle: "italic" }}>[Expr Start]</span>;
         } else if (expression === "[Expr End]") {
             return <span style={{ fontStyle: "italic" }}>[Expr End]</span>;
+        } else if (expression.trim() === "") {
+            return "\u00A0"; // Render a non-breaking space for empty lines
         } else {
-            return expression;
+            return renderExpressionWithColoredSum(expression);
         }
     };
 
@@ -266,7 +315,7 @@ const Calculator = ({ rows, setRows }: CalculatorProps) => {
                                             : "none",
                                 }}
                             >
-                                {renderExpression(row.expression) || "\u00A0"}
+                                {renderExpression(row.expression)}
                             </div>
                         ))}
                     </div>

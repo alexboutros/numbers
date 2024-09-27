@@ -1,4 +1,4 @@
-﻿// evaluatorManager.ts
+﻿import { sumSpecifiedResults } from "./sumEvaluator";
 
 interface Row {
     expression: string;
@@ -15,7 +15,7 @@ export const evaluateAllLines = (rows: Row[]): Row[] => {
         const row = rows[i];
         const expression = row.expression.trim();
 
-        // Handle multiline expressions with [Expr Start] and [Expr End]
+        // Handle multiline expressions
         if (expression === "[Expr Start]") {
             let multilineExpression = "";
             let j = i + 1;
@@ -26,7 +26,7 @@ export const evaluateAllLines = (rows: Row[]): Row[] => {
                 if (line === "[Expr End]") {
                     break;
                 } else {
-                    multilineExpression += "\n" + rows[j].expression;
+                    multilineExpression += line + "\n";
                 }
                 j++;
             }
@@ -35,9 +35,8 @@ export const evaluateAllLines = (rows: Row[]): Row[] => {
             let result: number | string | null = null;
             let isInvalid = false;
             try {
-                result = evaluateExpression(multilineExpression);
-                // Update variables if any assignments
-            } catch (e) {
+                result = evaluateExpression(multilineExpression.trim(), updatedRows);
+            } catch (e: any) {
                 isInvalid = true;
             }
 
@@ -45,7 +44,7 @@ export const evaluateAllLines = (rows: Row[]): Row[] => {
             for (let k = i; k <= j; k++) {
                 updatedRows.push({
                     ...rows[k],
-                    result: k === j ? result : null, // Set result only on the line with '[Expr End]'
+                    result: k === j ? result : null, // Set result only on the '[Expr End]' line
                     isInvalid: k === j ? isInvalid : false,
                     color: rows[k].color,
                 });
@@ -59,9 +58,8 @@ export const evaluateAllLines = (rows: Row[]): Row[] => {
 
             if (!expression.startsWith("//") && expression !== "") {
                 try {
-                    result = evaluateExpression(expression);
-                    // Update variables if any assignments
-                } catch (e) {
+                    result = evaluateExpression(expression, updatedRows);
+                } catch (e: any) {
                     isInvalid = true;
                 }
             }
@@ -79,14 +77,36 @@ export const evaluateAllLines = (rows: Row[]): Row[] => {
     return updatedRows;
 };
 
-// Placeholder evaluateExpression function
-const evaluateExpression = (expression: string): number | string => {
-    const sanitizedExpression = expression.replace(/\n/g, " ");
+const evaluateExpression = (
+    expression: string,
+    updatedRows: Row[]
+): number | string => {
+    // Replace sum(lineNumbers) with actual sums
+    const sumRegex = /sum\(([\d\s,]+)\)/g;
+
+    const expr = expression.replace(sumRegex, (_, p1) => {
+        const insideSum = p1;
+        const lineNumbers = insideSum
+            .split(",")
+            .map((n: string) => parseInt(n.trim(), 10) - 1); // Convert to zero-based index
+
+        try {
+            const sum = sumSpecifiedResults(
+                updatedRows.map((r) => r.result),
+                lineNumbers
+            );
+            return sum.toString();
+        } catch (e: any) {
+            throw new Error(`Error evaluating sum at lines ${insideSum}: ${e.message}`);
+        }
+    });
+
+    // Evaluate the modified expression
     try {
-        // Use a safe evaluation method here
-        const result = eval(sanitizedExpression); // Replace with a safe evaluator
+        const sanitizedExpression = expr.replace(/\n/g, " ");
+        const result = eval(sanitizedExpression); // Replace with safe evaluator in production
         return result;
-    } catch (e) {
+    } catch (e: any) {
         throw new Error("Invalid expression");
     }
 };
