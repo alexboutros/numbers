@@ -41,12 +41,39 @@ const Calculator = ({ rows, setRows }: CalculatorProps) => {
 
     return (
         <div className="w-3/4 flex flex-1 flex-col p-2" style={{ position: "relative" }}>
+            {/* Line numbers background */}
+            <div
+                className="line-numbers-background"
+                aria-hidden="true"
+                style={{
+                    position: "absolute",
+                    left: 0, // Align to the far left
+                    zIndex: 0,
+                    pointerEvents: "none",
+                    fontFamily: "monospace",
+                    fontSize: "18px",
+                    lineHeight: "1.5em",
+                    whiteSpace: "pre-line",
+                    margin: 0,
+                    padding: "0.4em 0",
+                    textAlign: "right", // Align numbers to the right
+                    width: "40px", // Width for the line numbers
+                    color: "#888", // Color for the line numbers
+                    paddingRight: "10px", // Space between the numbers and the expressions
+                }}
+            >
+                {rows.map((_, idx) => (
+                    <div key={idx}>{idx + 1}</div>
+                ))}
+            </div>
+
+            {/* Expression background */}
             <div
                 className="expression-background"
                 aria-hidden="true"
                 style={{
                     position: "absolute",
-                    left: 14,
+                    left: 54, // Shift to the right to accommodate line numbers
                     zIndex: 0,
                     pointerEvents: "none",
                     fontFamily: "monospace",
@@ -73,6 +100,7 @@ const Calculator = ({ rows, setRows }: CalculatorProps) => {
                 ))}
             </div>
 
+            {/* Textarea for input */}
             <textarea
                 className="flex-1 text-lg border-none resize-none bg-transparent focus:outline-none"
                 style={{
@@ -80,7 +108,7 @@ const Calculator = ({ rows, setRows }: CalculatorProps) => {
                     fontSize: "18px",
                     lineHeight: "1.5em",
                     margin: 0,
-                    left: 6,
+                    left: 46, // Shift textarea to match the expression background
                     padding: "0.4em 0",
                     height: "100%",
                     whiteSpace: "pre-line",
