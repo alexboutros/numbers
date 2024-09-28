@@ -1,7 +1,6 @@
 package main
 
 import (
-	utils2 "Numbers/packages/utils"
 	"embed"
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/logger"
@@ -20,16 +19,15 @@ var icon []byte
 
 func main() {
 	app := NewApp()
-	utils := utils2.NewUtils()
+	appUtilsHandler := AppUtilsHandler()
 
+	// Run the Wails application
 	err := wails.Run(&options.App{
-		Title:     "Numbers",
-		Width:     745,
-		Height:    640,
-		MinWidth:  754,
-		MinHeight: 640,
-		//MaxWidth:          1280,
-		//MaxHeight:         800,
+		Title:             "Numbers",
+		Width:             745,
+		Height:            640,
+		MinWidth:          754,
+		MinHeight:         640,
 		DisableResize:     false,
 		Fullscreen:        false,
 		Frameless:         true,
@@ -49,16 +47,15 @@ func main() {
 		WindowStartState: options.Normal,
 		Bind: []interface{}{
 			app,
-			utils,
+			appUtilsHandler,
 		},
 		// Windows platform specific options
 		Windows: &windows.Options{
 			WebviewIsTransparent: false,
 			WindowIsTranslucent:  false,
 			DisableWindowIcon:    false,
-			// DisableFramelessWindowDecorations: false,
-			WebviewUserDataPath: "",
-			ZoomFactor:          1.0,
+			WebviewUserDataPath:  "",
+			ZoomFactor:           1.0,
 		},
 		// Mac platform specific options
 		Mac: &mac.Options{
@@ -81,7 +78,11 @@ func main() {
 		},
 	})
 
+	// Check for errors after running the app
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("Error running Wails app: %v", err)
 	}
+
+	// Log successful shutdown
+	log.Println("Numbers app shutdown successfully.")
 }
