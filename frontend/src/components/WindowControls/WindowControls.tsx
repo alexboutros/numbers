@@ -12,7 +12,6 @@ const WindowControls = () => {
     useEffect(() => {
         checkForUpdates()
             .then((version) => {
-                console.log(version);
                 if (version) {
                     setLatestVersion(version);
                     setUpdateAvailable(true);

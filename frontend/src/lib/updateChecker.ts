@@ -1,12 +1,9 @@
-﻿import  { GetVersion } from "../../wailsjs/go/utils/Utils";
+﻿import  { GetVersion } from "../../wailsjs/go/main/AppUtils";
 
 export const checkForUpdates = async (): Promise<string | null> => {
     try {
-        // Fetch the current version from the backend
         const CURRENT_VERSION = await GetVersion();
-        console.log("Current version:", CURRENT_VERSION);
 
-        // Fetch the latest release information from GitHub
         const response = await fetch("https://api.github.com/repos/alexboutros/numbers/releases/latest", {
             headers: {
                 "Accept": "application/vnd.github.v3+json"
@@ -20,12 +17,11 @@ export const checkForUpdates = async (): Promise<string | null> => {
         const data = await response.json();
         const latestTagName = data.tag_name;
 
-        // Compare the current version with the latest version
         if (latestTagName && latestTagName !== CURRENT_VERSION) {
             return latestTagName;
         }
 
-        return null; // No new version available
+        return null;
     } catch (error) {
         console.error("Error checking for updates:", error);
         return null;
