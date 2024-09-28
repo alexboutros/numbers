@@ -9,5 +9,8 @@
   "author": {
     "name": "alex",
     "email": "alex@aterrible.day"
+  },
+  "info": {
+    "ProductVersion": "1.0.1"
   }
 }

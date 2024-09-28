@@ -1,15 +1,15 @@
 package main
 
 import (
+	utils2 "Numbers/packages/utils"
 	"embed"
-	"log"
-
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/logger"
 	"github.com/wailsapp/wails/v2/pkg/options"
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
 	"github.com/wailsapp/wails/v2/pkg/options/mac"
 	"github.com/wailsapp/wails/v2/pkg/options/windows"
+	"log"
 )
 
 //go:embed all:frontend/dist
@@ -20,13 +20,14 @@ var icon []byte
 
 func main() {
 	app := NewApp()
+	utils := utils2.NewUtils()
 
 	err := wails.Run(&options.App{
 		Title:     "Numbers",
-		Width:     735,
-		Height:    608,
-		MinWidth:  702,
-		MinHeight: 455,
+		Width:     745,
+		Height:    640,
+		MinWidth:  754,
+		MinHeight: 640,
 		//MaxWidth:          1280,
 		//MaxHeight:         800,
 		DisableResize:     false,
@@ -48,6 +49,7 @@ func main() {
 		WindowStartState: options.Normal,
 		Bind: []interface{}{
 			app,
+			utils,
 		},
 		// Windows platform specific options
 		Windows: &windows.Options{
